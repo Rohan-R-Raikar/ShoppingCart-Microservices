@@ -10,12 +10,15 @@ namespace IdentityService.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JwtTokenGenerator _jwtGenerator;
+        private readonly PasswordHasher<ApplicationUser> _passwordHasher;
 
         public AuthService(UserManager<ApplicationUser> userManager,
-            JwtTokenGenerator jwtToken)
+            JwtTokenGenerator jwtToken,
+            PasswordHasher<ApplicationUser> passwordHasher)
         {
             _jwtGenerator = jwtToken;
             _userManager = userManager;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<TokenDto> RegisterAsync(RegisterDto dto)
@@ -26,7 +29,10 @@ namespace IdentityService.Services
                 UserName = dto.Email,
                 FullName = dto.FullName
             };
-            var result = await _userManager.CreateAsync(user, dto.Password);
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
+
+            var result = await _userManager.CreateAsync(user);
             if (!result.Succeeded)
             {
                 throw new Exception(string.Join(",",result.Errors));
