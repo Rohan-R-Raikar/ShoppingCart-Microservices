@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace IdentityService.JWT
@@ -37,8 +39,30 @@ namespace IdentityService.JWT
                 expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_config["JwtSettings:ExpiryMinutes"])),
                 signingCredentials:creds
             );
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return EncryptString(jwt, _config["JwtSettings:EncryptionKey"]);
         }
 
+        private string EncryptString(String plainText, string keyString)
+        {
+            var key = Encoding.UTF8.GetBytes(keyString);
+
+            using var aes = System.Security.Cryptography.Aes.Create();
+            aes.Key = key;
+            aes.GenerateIV();
+            var iv = aes.IV;
+
+            using var encryptor = aes.CreateEncryptor(aes.Key,iv);
+            using var ms = new MemoryStream();
+            ms.Write(iv,0,iv.Length);
+            using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                using (var sw = new StreamWriter(cs))
+            {
+                sw.Write(plainText);
+            }
+
+            return Convert.ToBase64String(ms.ToArray());
+        }
     }
 }
