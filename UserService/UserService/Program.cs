@@ -21,6 +21,9 @@ builder.Services.AddScoped<RoleSeeder>();
 builder.Services.AddScoped<PermissionSeeder>();
 builder.Services.AddScoped<IUserClaimsService, UserClaimsService>();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
 await SeederRunner.SeedAsync(app.Services);

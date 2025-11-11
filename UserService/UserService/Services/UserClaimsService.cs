@@ -59,7 +59,7 @@ namespace UserService.Services
             var dto = new UserClaimsDto
             {
                 UserId = user.Id,
-                FullName = user.FullName ?? string.Empty,
+                //FullName = user.FullName ?? string.Empty,
                 Email = user.Email ?? email,
                 Roles = roleList,
                 Permissions = permissions

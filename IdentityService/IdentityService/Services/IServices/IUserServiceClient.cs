@@ -10,5 +10,7 @@ namespace IdentityService.Services.IServices
         /// Throws on other HTTP errors.
         /// </summary>
         Task<UserClaimsDto?> GetUserClaimsByEmailAsync(string email, CancellationToken cancellationToken = default);
+        Task<UserClaimsDto?> VerifyUserCredentialsAsync(string email, string password);
+        Task<UserClaimsDto?> RegisterUserAsync(RegisterDto dto);
     }
 }

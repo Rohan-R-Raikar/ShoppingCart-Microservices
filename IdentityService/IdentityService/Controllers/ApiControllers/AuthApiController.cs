@@ -18,9 +18,17 @@ namespace IdentityService.Controllers.ApiControllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterDto registerDto)
         {
-            var token = await _authService.RegisterAsync(registerDto);
-            return Ok (token);
+            try
+            {
+                var token = await _authService.RegisterAsync(registerDto);
+                return Ok(token);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
