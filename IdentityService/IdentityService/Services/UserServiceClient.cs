@@ -49,7 +49,9 @@ namespace IdentityService.Services
                 var payload = new { email = email, password = password };
 
                 // Send POST request to the UserService
-                var resp = await _http.PostAsJsonAsync("user-service/users/verify-credentials", payload);
+                //var resp = await _http.PostAsJsonAsync("user-service/users/verify-credentials", payload);
+                var resp = await _http.PostAsJsonAsync("user-service/verify-credentials", payload);
+
 
                 // If request failed, log status code and return null
                 if (!resp.IsSuccessStatusCode)
