@@ -47,6 +47,12 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<JwtTokenGenerator>();
 
+var gatewayBase = builder.Configuration["Gateway:BaseUrl"] ?? "https://localhost:7141/";
+builder.Services.AddHttpClient<IUserServiceClient, UserServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(gatewayBase);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

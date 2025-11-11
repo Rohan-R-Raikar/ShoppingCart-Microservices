@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using UserService.Data;
 using UserService.Models.Entities;
+using UserService.Services;
+using UserService.Services.IServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,10 +19,11 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
 
 builder.Services.AddScoped<RoleSeeder>();
 builder.Services.AddScoped<PermissionSeeder>();
-
-await SeederRunner.SeedAsync(app.Services);
+builder.Services.AddScoped<IUserClaimsService, UserClaimsService>();
 
 var app = builder.Build();
+
+await SeederRunner.SeedAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

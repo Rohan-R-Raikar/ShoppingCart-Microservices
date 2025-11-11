@@ -6,7 +6,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5001
+          "Port": 7137
         }
       ],
       "UpstreamPathTemplate": "/identity/{everything}",
@@ -22,7 +22,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5002
+          "Port": 7047
         }
       ],
       "UpstreamPathTemplate": "/user/{everything}",
@@ -34,6 +34,6 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:5000"
+    "BaseUrl": "https://localhost:7141"
   }
 }

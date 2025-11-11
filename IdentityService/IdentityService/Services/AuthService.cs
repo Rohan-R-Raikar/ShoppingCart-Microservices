@@ -11,14 +11,17 @@ namespace IdentityService.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JwtTokenGenerator _jwtGenerator;
         private readonly PasswordHasher<ApplicationUser> _passwordHasher;
+        private readonly IUserServiceClient _userServiceClient;
 
         public AuthService(UserManager<ApplicationUser> userManager,
             JwtTokenGenerator jwtToken,
-            PasswordHasher<ApplicationUser> passwordHasher)
+            PasswordHasher<ApplicationUser> passwordHasher,
+            IUserServiceClient userServiceClient)
         {
             _jwtGenerator = jwtToken;
             _userManager = userManager;
             _passwordHasher = passwordHasher;
+            _userServiceClient = userServiceClient;
         }
 
         public async Task<TokenDto> RegisterAsync(RegisterDto dto)
@@ -37,13 +40,28 @@ namespace IdentityService.Services
             {
                 throw new Exception(string.Join(",",result.Errors));
             }
+
             await _userManager.AddToRoleAsync(user, "Customer");
-            var roles = await _userManager.GetRolesAsync(user);
-            var permission = new List<string>();
+
+            IList<string> roles = new List<string>();
+            IList<string> permissions = new List<string>();
+
+            try
+            {
+                var claimsFromUserService = await _userServiceClient.GetUserClaimsByEmailAsync(user.Email);
+                if (claimsFromUserService != null)
+                {
+                    roles = claimsFromUserService.Roles;
+                    permissions = claimsFromUserService.Permissions;
+                }
+            }
+            catch
+            {
+            }
 
             return new TokenDto
             {
-                AccessToken = _jwtGenerator.GenerateToken(user, roles, permission),
+                AccessToken = _jwtGenerator.GenerateToken(user, roles, permissions),
                 Expiry = DateTime.UtcNow.AddMinutes(15)
             };
         }
@@ -56,13 +74,29 @@ namespace IdentityService.Services
             var isValid = await _userManager.CheckPasswordAsync(user, dto.Password);
             if (!isValid) throw new Exception("Invalid Credentials");
 
-            var roles = await _userManager.GetRolesAsync(user);
-            var permission = new List<string>();
+            // Fetch roles & permissions via Gateway from UserService
+            IList<string> roles = new List<string>();
+            IList<string> permissions = new List<string>();
+
+            try
+            {
+                var claimsFromUserService = await _userServiceClient.GetUserClaimsByEmailAsync(user.Email);
+                if (claimsFromUserService != null)
+                {
+                    roles = claimsFromUserService.Roles;
+                    permissions = claimsFromUserService.Permissions;
+                }
+            }
+            catch
+            {
+                // If UserService is down, fallback to Identity roles
+                roles = await _userManager.GetRolesAsync(user);
+            }
 
             return new TokenDto
             {
-                AccessToken = _jwtGenerator.GenerateToken(user,roles, permission),
-                Expiry= DateTime.UtcNow.AddMinutes(15)
+                AccessToken = _jwtGenerator.GenerateToken(user, roles, permissions),
+                Expiry = DateTime.UtcNow.AddMinutes(15)
             };
         }
     }
