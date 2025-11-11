@@ -16,8 +16,8 @@ namespace UserService.Data
         {
             var permissions = new[] {
                 "CanAddProduct", "CanEditProduct", "CanDeleteProduct",
-                "CanManageRoles", "CanManagePermissions",
-                "CanAddCategory", "CanEditCategory", "CanDeleteCategory"
+                "CanAddCategory", "CanEditCategory", "CanDeleteCategory",
+                "CanAddCart","CanEditCart","CanDeleteCart"
             };
 
             foreach (var perm in permissions)

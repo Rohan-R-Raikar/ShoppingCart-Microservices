@@ -17,8 +17,6 @@ namespace IdentityService.Services
         public UserServiceClient(HttpClient http)
         {
             _http = http;
-            // the HttpClient BaseAddress should be the Gateway base (configured in Program.cs)
-            // Example: https://localhost:7141/
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
@@ -28,7 +26,7 @@ namespace IdentityService.Services
 
             // email must be URL encoded
             var encodedEmail = WebUtility.UrlEncode(email);
-            var url = $"user-service/users/{encodedEmail}/claims"; // Gateway route
+            var url = $"user-service/users/{encodedEmail}/claims";
 
             using var resp = await _http.GetAsync(url, cancellationToken);
 

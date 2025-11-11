@@ -25,7 +25,7 @@
           "Port": 7047
         }
       ],
-      "UpstreamPathTemplate": "/user/{everything}",
+      "UpstreamPathTemplate": "/user-service/{everything}",
       "UpstreamHttpMethod": [ "POST", "GET", "PUT", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
