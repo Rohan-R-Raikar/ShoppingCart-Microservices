@@ -29,12 +29,6 @@ namespace UserService.Controllers.Api
             _context = context;
         }
 
-        /// <summary>
-        /// GET api/users/{email}/claims
-        /// Returns user profile + roles + permissions by email.
-        /// 200 OK with empty arrays if user has no roles/permissions.
-        /// 404 if user not found.
-        /// </summary>
         [HttpGet("{email}/claims")]
         public async Task<ActionResult<UserClaimsDto>> GetUserClaimsByEmail(string email)
         {
@@ -46,7 +40,6 @@ namespace UserService.Controllers.Api
                     return NotFound(new { error = "User not found" });
                 }
 
-                // Always return 200 with empty arrays when roles/permissions are missing
                 return Ok(claims);
             }
             catch (Exception ex)
@@ -61,7 +54,6 @@ namespace UserService.Controllers.Api
         {
             try
             {
-                // Check if user already exists
                 var existingUser = await _userManager.FindByEmailAsync(dto.Email);
                 if (existingUser != null)
                     return Conflict(new { error = "Email already exists" });
@@ -70,7 +62,6 @@ namespace UserService.Controllers.Api
                 {
                     Email = dto.Email,
                     UserName = dto.Email
-                    //FullName = dto.FullName
                 };
 
                 var result = await _userManager.CreateAsync(user, dto.Password);
@@ -79,10 +70,8 @@ namespace UserService.Controllers.Api
                     return BadRequest(result.Errors);
                 }
 
-                // Assign default role
                 await _userManager.AddToRoleAsync(user, "User");
 
-                // Fetch roles and permissions for JWT
                 var roles = await _userManager.GetRolesAsync(user);
                 var roleIds = await _roleManager.Roles
                     .Where(r => roles.Contains(r.Name))
@@ -100,7 +89,6 @@ namespace UserService.Controllers.Api
                 var dtoResult = new UserClaimsDto
                 {
                     UserId = user.Id,
-                    //FullName = user.FullName,
                     Email = user.Email,
                     Roles = roles,
                     Permissions = permissions
@@ -128,7 +116,6 @@ namespace UserService.Controllers.Api
                 if (!valid)
                     return Unauthorized(new { error = "Invalid credentials" });
 
-                // Fetch roles and permissions
                 var roles = await _userManager.GetRolesAsync(user);
                 var roleIds = await _roleManager.Roles
                     .Where(r => roles.Contains(r.Name))
@@ -146,7 +133,6 @@ namespace UserService.Controllers.Api
                 var dtoResult = new UserClaimsDto
                 {
                     UserId = user.Id,
-                    //FullName = user.FullName,
                     Email = user.Email,
                     Roles = roles,
                     Permissions = permissions

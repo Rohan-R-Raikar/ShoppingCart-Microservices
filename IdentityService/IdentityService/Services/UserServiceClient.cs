@@ -24,7 +24,6 @@ namespace IdentityService.Services
         {
             if (string.IsNullOrWhiteSpace(email)) return null;
 
-            // email must be URL encoded
             var encodedEmail = WebUtility.UrlEncode(email);
             var url = $"user-service/users/{encodedEmail}/claims";
 
@@ -45,28 +44,21 @@ namespace IdentityService.Services
         {
             try
             {
-                // Create payload that matches what UserService expects
                 var payload = new { email = email, password = password };
 
-                // Send POST request to the UserService
-                //var resp = await _http.PostAsJsonAsync("user-service/users/verify-credentials", payload);
                 var resp = await _http.PostAsJsonAsync("user-service/verify-credentials", payload);
 
 
-                // If request failed, log status code and return null
                 if (!resp.IsSuccessStatusCode)
                 {
-                    // You can replace Console.WriteLine with your logging framework
                     Console.WriteLine($"[VerifyUserCredentialsAsync] Request failed with status code: {resp.StatusCode}");
 
-                    // Optional: log response content for debugging (do not log passwords in production!)
                     var content = await resp.Content.ReadAsStringAsync();
                     Console.WriteLine($"[VerifyUserCredentialsAsync] Response content: {content}");
 
                     return null;
                 }
 
-                // Attempt to deserialize the response into UserClaimsDto
                 var userClaims = await resp.Content.ReadFromJsonAsync<UserClaimsDto>(_jsonOptions);
 
                 if (userClaims == null)
@@ -78,13 +70,11 @@ namespace IdentityService.Services
             }
             catch (HttpRequestException ex)
             {
-                // Catch network errors, DNS failures, connection issues
                 Console.WriteLine($"[VerifyUserCredentialsAsync] HTTP request exception: {ex.Message}");
                 return null;
             }
             catch (Exception ex)
             {
-                // Catch any other unexpected exceptions
                 Console.WriteLine($"[VerifyUserCredentialsAsync] Unexpected exception: {ex.Message}");
                 return null;
             }

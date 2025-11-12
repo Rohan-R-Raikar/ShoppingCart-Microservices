@@ -25,9 +25,16 @@ namespace IdentityService.Services
                 throw new Exception("Registration failed");
             }
 
+            var userdto = new UserDto
+            {
+                Id = userClaims.UserId,
+                Email = userClaims.Email,
+                FullName = userClaims.FullName ?? string.Empty,
+            };
+
             return new TokenDto
             {
-                AccessToken = _jwtGenerator.GenerateToken(userClaims.User, userClaims.Roles, userClaims.Permissions),
+                AccessToken = _jwtGenerator.GenerateToken(userdto, userClaims.Roles, userClaims.Permissions),
                 Expiry = DateTime.UtcNow.AddMinutes(15),
                 RefreshToken = null
             };
@@ -42,9 +49,16 @@ namespace IdentityService.Services
                 throw new Exception("Invalid Credentials");
             }
 
+            var userdto = new UserDto
+            {
+                Id = userClaims.UserId,
+                Email = userClaims.Email,
+                FullName = userClaims.FullName ?? string.Empty,
+            };
+
             return new TokenDto
             {
-                AccessToken = _jwtGenerator.GenerateToken(userClaims.User, userClaims.Roles, userClaims.Permissions),
+                AccessToken = _jwtGenerator.GenerateToken(userdto, userClaims.Roles, userClaims.Permissions),
                 Expiry = DateTime.UtcNow.AddMinutes(15),
                 RefreshToken = null
             };

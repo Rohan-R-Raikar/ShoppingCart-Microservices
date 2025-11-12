@@ -33,7 +33,6 @@ namespace UserService.Services
             var roles = await _userManager.GetRolesAsync(user);
             var roleList = roles ?? new List<string>();
 
-            // Get role ids for the role names (if any)
             var roleIds = new List<string>();
             if (roleList.Any())
             {
@@ -43,7 +42,6 @@ namespace UserService.Services
                     .ToListAsync();
             }
 
-            // Fetch distinct permission names linked to those roleIds
             var permissions = new List<string>();
             if (roleIds.Any())
             {
@@ -59,13 +57,11 @@ namespace UserService.Services
             var dto = new UserClaimsDto
             {
                 UserId = user.Id,
-                //FullName = user.FullName ?? string.Empty,
                 Email = user.Email ?? email,
                 Roles = roleList,
                 Permissions = permissions
             };
 
-            // ensure non-null lists
             dto.Roles ??= new List<string>();
             dto.Permissions ??= new List<string>();
 
