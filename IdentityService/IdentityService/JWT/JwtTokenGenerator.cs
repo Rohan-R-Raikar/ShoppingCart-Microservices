@@ -1,15 +1,16 @@
 ﻿using IdentityService.Models.DTOs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace IdentityService.JWT
 {
     public class JwtTokenGenerator
     {
         private readonly IConfiguration _config;
+
         public JwtTokenGenerator(IConfiguration configuration)
         {
             _config = configuration;
@@ -24,24 +25,32 @@ namespace IdentityService.JWT
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.FullName)
             };
 
-            // Add roles as claims
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
-
-            // Add permissions as claims (not roles)
             claims.AddRange(permissions.Select(p => new Claim("permission", p)));
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSettings:SecretKey"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSettings:SecretKey"]));
+            var encryptionKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSettings:EncryptionKey"]));
 
-            var token = new JwtSecurityToken(
-                issuer: _config["JwtSettings:Issuer"],
-                audience: _config["JwtSettings:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_config["JwtSettings:ExpiryMinutes"])),
-                signingCredentials: creds
+            var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+            var encryptingCredentials = new EncryptingCredentials(
+                encryptionKey,
+                SecurityAlgorithms.Aes256KW,
+                SecurityAlgorithms.Aes256CbcHmacSha512
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var handler = new JsonWebTokenHandler();
+
+            var descriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Issuer = _config["JwtSettings:Issuer"],
+                Audience = _config["JwtSettings:Audience"],
+                Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_config["JwtSettings:ExpiryMinutes"])),
+                SigningCredentials = signingCredentials,
+                EncryptingCredentials = encryptingCredentials
+            };
+
+            return handler.CreateToken(descriptor);
         }
     }
 }
