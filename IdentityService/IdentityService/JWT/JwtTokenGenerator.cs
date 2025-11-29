@@ -18,6 +18,7 @@ namespace IdentityService.JWT
 
         public string GenerateToken(UserDto user, IList<string> roles, IList<string> permissions)
         {
+            // Create claims
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
@@ -28,8 +29,12 @@ namespace IdentityService.JWT
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
             claims.AddRange(permissions.Select(p => new Claim("permission", p)));
 
+            var encryptionKeyBytes = Encoding.UTF8.GetBytes(_config["JwtSettings:EncryptionKey"]);
+            if (encryptionKeyBytes.Length != 32)
+                throw new ArgumentException("EncryptionKey must be exactly 32 characters for AES-256 encryption.");
+
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSettings:SecretKey"]));
-            var encryptionKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSettings:EncryptionKey"]));
+            var encryptionKey = new SymmetricSecurityKey(encryptionKeyBytes);
 
             var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
             var encryptingCredentials = new EncryptingCredentials(
@@ -37,8 +42,6 @@ namespace IdentityService.JWT
                 SecurityAlgorithms.Aes256KW,
                 SecurityAlgorithms.Aes256CbcHmacSha512
             );
-
-            var handler = new JsonWebTokenHandler();
 
             var descriptor = new SecurityTokenDescriptor
             {
@@ -50,7 +53,11 @@ namespace IdentityService.JWT
                 EncryptingCredentials = encryptingCredentials
             };
 
-            return handler.CreateToken(descriptor);
+            // Create token
+            var handler = new JsonWebTokenHandler();
+            var token = handler.CreateToken(descriptor);
+
+            return token;
         }
     }
 }
